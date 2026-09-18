@@ -1,0 +1,4 @@
+__pycache__/
+*.pyC
+bus_tracking.db
+offline_queue.json

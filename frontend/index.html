@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Rural Bus Tracker</title>
+
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <style>
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            padding: 15px;
+            background: #222;
+            color: white;
+            text-align: center;
+        }
+
+        #map {
+            height: 80vh;
+        }
+
+        #bus-info {
+            padding: 15px;
+            background: white;
+        }
+
+        #bus-select {
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        #bus-details {
+            line-height: 1.6;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>🚌 Rural Bus Tracker</h1>
+        <p>Live Bus Location</p>
+    </header>
+
+
+    <div id="bus-info">
+
+        <label for="bus-select">
+            🚌 Select Bus:
+        </label>
+
+        <select id="bus-select"></select>
+
+        <hr>
+
+        <div id="bus-details">
+            Loading bus information...
+        </div>
+
+    </div>
+
+
+    <div id="map"></div>
+
+
+    <!-- Leaflet JavaScript -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+
+    <script>
+
+        // --------------------------------
+        // BUS CONFIGURATION
+        // --------------------------------
+
+        const BUS_IDS = [
+            "BUS-101",
+            "BUS-102",
+            "BUS-103"
+        ];
+
+
+        // --------------------------------
+        // API CONFIGURATION
+        // --------------------------------
+
+        const API_BASE_URL =
+            "http://127.0.0.1:8000";
+
+
+        // --------------------------------
+        // SELECTED BUS
+        // --------------------------------
+
+        let selectedBus = "BUS-101";
+
+
+        // --------------------------------
+        // CREATE MAP
+        // --------------------------------
+
+        const map = L.map("map").setView(
+            [10.1234, 78.1234],
+            13
+        );
+
+
+        // --------------------------------
+        // OPENSTREETMAP
+        // --------------------------------
+
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                attribution:
+                    "&copy; OpenStreetMap contributors"
+            }
+        ).addTo(map);
+
+
+        // --------------------------------
+        // BUS MARKERS
+        // --------------------------------
+
+        const busMarkers = {};
+
+
+        // --------------------------------
+        // ROUTE LINE
+        // --------------------------------
+
+        let routeLine = null;
+
+
+        // --------------------------------
+        // BUS SELECT ELEMENT
+        // --------------------------------
+
+        const busSelect =
+            document.getElementById("bus-select");
+
+
+        // --------------------------------
+        // ADD BUS OPTIONS
+        // --------------------------------
+
+        BUS_IDS.forEach(function(busId) {
+
+            const option =
+                document.createElement("option");
+
+            option.value = busId;
+
+            option.textContent = busId;
+
+            busSelect.appendChild(option);
+
+        });
+
+
+        busSelect.value = selectedBus;
+
+
+        // --------------------------------
+        // BUS STATUS
+        // --------------------------------
+
+        function getBusStatus(timestamp) {
+
+            const lastUpdated =
+                new Date(
+                    timestamp.replace(" ", "T")
+                );
+
+            const now = new Date();
+
+            const difference =
+                (now - lastUpdated) / 1000;
+
+
+            if (difference <= 10) {
+
+                return "🟢 Live";
+
+            }
+
+
+            if (difference <= 30) {
+
+                return "🟠 Recently updated";
+
+            }
+
+
+            return "🔴 Stale";
+
+        }
+
+
+        // --------------------------------
+        // UPDATE BUS LOCATION
+        // --------------------------------
+
+        async function updateBusLocation(busId) {
+
+            try {
+
+                const response =
+                    await fetch(
+                        `${API_BASE_URL}/bus/${busId}`
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Bus location request failed"
+                    );
+
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                // Calculate bus status
+                const status =
+                    getBusStatus(data.timestamp);
+
+
+                // Bus position
+                const position = [
+                    data.latitude,
+                    data.longitude
+                ];
+
+
+                // --------------------------------
+                // CREATE OR UPDATE MARKER
+                // --------------------------------
+
+                if (!busMarkers[busId]) {
+
+                    busMarkers[busId] =
+                        L.marker(position)
+                        .addTo(map);
+
+                } else {
+
+                    busMarkers[busId]
+                        .setLatLng(position);
+
+                }
+
+
+                // --------------------------------
+                // MARKER POPUP
+                // --------------------------------
+
+                busMarkers[busId].bindPopup(
+
+                    `🚌 <strong>${data.bus_id}</strong><br>
+                     📡 Status: ${status}<br>
+                     🛣️ Route: ${data.route_name}<br>
+                     📍 Next Stop: ${data.next_stop}<br>
+                     ⏱️ ETA: ${data.eta_minutes ?? "N/A"} minutes<br>
+                     🌐 Latitude: ${data.latitude}<br>
+                     🌐 Longitude: ${data.longitude}<br>
+                     🕒 ${data.timestamp}`
+
+                );
+
+
+                // --------------------------------
+                // UPDATE SELECTED BUS INFORMATION
+                // --------------------------------
+
+                if (busId === selectedBus) {
+
+                    map.setView(
+                        position,
+                        14
+                    );
+
+
+                    document.getElementById(
+                        "bus-details"
+                    ).innerHTML = `
+
+                        <strong>
+                            🚌 ${data.bus_id}
+                        </strong>
+                        <br>
+
+                        Status:
+                        ${status}
+                        <br>
+
+                        Route:
+                        ${data.route_name}
+                        <br>
+
+                        Next Stop:
+                        ${data.next_stop}
+                        <br>
+
+                        ETA:
+                        ${data.eta_minutes ?? "N/A"}
+                        minutes
+                        <br>
+
+                        Latitude:
+                        ${data.latitude}
+                        <br>
+
+                        Longitude:
+                        ${data.longitude}
+                        <br>
+
+                        Last Updated:
+                        ${data.timestamp}
+
+                    `;
+
+                }
+
+
+            } catch (error) {
+
+                console.error(
+                    `Error getting ${busId}:`,
+                    error
+                );
+
+            }
+
+        }
+
+
+        // --------------------------------
+        // UPDATE BUS HISTORY
+        // --------------------------------
+
+        async function updateBusHistory(busId) {
+
+            try {
+
+                const response =
+                    await fetch(
+                        `${API_BASE_URL}/bus/${busId}/history`
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Bus history request failed"
+                    );
+
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                if (!data.locations) {
+
+                    return;
+
+                }
+
+
+                if (data.locations.length === 0) {
+
+                    return;
+
+                }
+
+
+                // --------------------------------
+                // CREATE COORDINATES
+                // --------------------------------
+
+                const coordinates =
+                    data.locations.map(
+                        function(location) {
+
+                            return [
+                                location.latitude,
+                                location.longitude
+                            ];
+
+                        }
+                    );
+
+
+                // --------------------------------
+                // REMOVE OLD ROUTE
+                // --------------------------------
+
+                if (routeLine) {
+
+                    map.removeLayer(
+                        routeLine
+                    );
+
+                }
+
+
+                // --------------------------------
+                // DRAW ROUTE
+                // --------------------------------
+
+                routeLine =
+                    L.polyline(
+                        coordinates,
+                        {
+                            weight: 4
+                        }
+                    ).addTo(map);
+
+
+            } catch (error) {
+
+                console.error(
+                    `Error getting history for ${busId}:`,
+                    error
+                );
+
+            }
+
+        }
+
+
+        // --------------------------------
+        // UPDATE ALL BUSES
+        // --------------------------------
+
+        async function updateAllBuses() {
+
+            for (
+                const busId of BUS_IDS
+            ) {
+
+                await updateBusLocation(
+                    busId
+                );
+
+            }
+
+        }
+
+
+        // --------------------------------
+        // BUS SELECTION
+        // --------------------------------
+
+        busSelect.addEventListener(
+            "change",
+            function() {
+
+                selectedBus =
+                    busSelect.value;
+
+
+                updateBusLocation(
+                    selectedBus
+                );
+
+
+                updateBusHistory(
+                    selectedBus
+                );
+
+            }
+        );
+
+
+        // --------------------------------
+        // INITIAL LOAD
+        // --------------------------------
+
+        updateAllBuses();
+
+        updateBusHistory(
+            selectedBus
+        );
+
+
+        // --------------------------------
+        // AUTO REFRESH
+        // --------------------------------
+
+        setInterval(
+            updateAllBuses,
+            5000
+        );
+
+
+    </script>
+
+</body>
+
+</html>
