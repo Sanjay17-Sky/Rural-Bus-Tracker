@@ -33,7 +33,7 @@ buses on an interactive map.
 
 ## 🏗️ Architecture 
 
-┌──────────────────────┐
+                    ┌──────────────────────┐
                     │   Bus Simulator      │
                     │   Python             │
                     │                      │
@@ -49,7 +49,7 @@ buses on an interactive map.
                     │                      │
                     │ /location            │
                     │ /bus/{bus_id}        │
-                    │ /history              │
+                    │ /history             │
                     └──────────┬───────────┘
                                │
                                ▼
@@ -64,28 +64,30 @@ buses on an interactive map.
                                │
                                ▼
                     ┌──────────────────────┐
-                    │    Web Frontend      │
-                    │ HTML + JavaScript    │
-                    │      Leaflet         │
-                    │                      │
-                    │ 🚌 Live Markers      │
-                    │ 📍 Next Stop         │
-                    │ ⏱️ ETA               │
-                    │ 🛣️ Route History     │
+                    │    Web Frontend      |
+                    │ HTML + JavaScript    |
+                    │      Leaflet         |
+                    │                      |
+                    │ 🚌 Live Markers      |
+                    │ 📍 Next Stop         |
+                    │ ⏱️ ETA               |
+                    │ 🛣️ Route History     |
                     └──────────────────────┘
+                         Network Failure
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │ Offline Queue       │
+                    │ offline_queue.json  │
+                    └──────────┬──────────┘
+                               │
+                         Network returns
+                               │
+                               ▼
+                          Automatic Sync
+                  
 
-             Network Failure
-                    │
-                    ▼
-          ┌─────────────────────┐
-          │ Offline Queue       │
-          │ offline_queue.json  │
-          └──────────┬──────────┘
-                     │
-              Network returns
-                     │
-                     ▼
-              Automatic Sync
+                       
 
 Bus Simulator
 ↓
@@ -164,7 +166,7 @@ pip install -r requirements.txt
 
 ### 2. Start the FastAPI backend
 
-uvicorn backend.main:app --reload
+python -m uvicorn backend.main:app --reload
 
 ### 3. Start the bus simulator
 
