@@ -89,27 +89,27 @@ buses on an interactive map.
 
                        
 
-Bus Simulator
-↓
-FastAPI REST API
-↓
-SQLite Database
-↓
-Leaflet Web Map
+ Bus Simulator
+ ↓
+ FastAPI REST API
+ ↓
+ SQLite Database
+ ↓
+ Leaflet Web Map
 
-During network failure:
+ During network failure:
 
-Bus Simulator
-↓
-Offline Queue
-↓
-Network Recovery
-↓
-Automatic Synchronization
-↓
-FastAPI
-↓
-SQLite
+ Bus Simulator
+ ↓
+ Offline Queue
+ ↓
+ Network Recovery
+ ↓
+ Automatic Synchronization
+ ↓
+ FastAPI
+ ↓
+ SQLite
 
 ## ✨ Features
 
@@ -142,21 +142,21 @@ SQLite
 
 ## 📁 Project Structure
 
-rural-bus-tracker/
-│
-├── backend/
-│   ├── main.py
-│   └── database.py
-│
-├── simulator/
-│   └── bus_simulator.py
-│
-├── frontend/
-│   └── index.html
-│
-├── requirements.txt
-├── .gitignore
-└── README.md
+  rural-bus-tracker/
+  │
+  ├── backend/
+  │   ├── main.py
+  │   └── database.py
+  │
+  ├── simulator/
+  │   └── bus_simulator.py
+  │
+  ├── frontend/
+  │   └── index.html
+  │
+  ├── requirements.txt
+  ├── .gitignore
+  └── README.md
 
 ## 🚀 How to Run
 
