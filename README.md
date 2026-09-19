@@ -88,28 +88,27 @@ buses on an interactive map.
                   
 
                        
+Bus Simulator
+↓
+FastAPI REST API
+↓
+SQLite Database
+↓
+Leaflet Web Map
 
- Bus Simulator
- ↓
- FastAPI REST API
- ↓
- SQLite Database
- ↓
- Leaflet Web Map
+During network failure:
 
- During network failure:
-
- Bus Simulator
- ↓
- Offline Queue
- ↓
- Network Recovery
- ↓
- Automatic Synchronization
- ↓
- FastAPI
- ↓
- SQLite
+Bus Simulator
+↓
+Offline Queue
+↓
+Network Recovery
+↓
+Automatic Synchronization
+↓
+FastAPI
+↓
+SQLite
 
 ## ✨ Features
 
